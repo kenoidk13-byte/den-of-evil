@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Логово Зла — Diablo II</title>
+<meta name="theme-color" content="#0b0907" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="ui">
+  <div id="area-banner">
+    <span>Акт I · Пещера</span>
+    <h1>Логово зла</h1>
+    <em>Земля под Рогом проклята</em>
+  </div>
+
+  <aside id="quest-card" class="framed">
+    <div class="quest-kicker"><i></i>Задание</div>
+    <div class="quest-name">Логово зла</div>
+    <p class="quest-desc">Очистите пещеру от порождений тьмы. Ни одна тварь не должна уйти живой.</p>
+    <div class="quest-progress">
+      <span class="quest-count" id="quest-count">0</span>
+      <span class="quest-sub">тварей осталось</span>
+    </div>
+  </aside>
+
+  <aside id="map-card" class="framed">
+    <canvas id="minimap" width="150" height="150"></canvas>
+    <div class="map-title">Логово зла</div>
+  </aside>
+
+  <div id="bossbar" class="hidden">
+    <div class="boss-name">Кровавый Рог</div>
+    <div class="boss-sub">Вожак стаи</div>
+    <div class="boss-track"><i id="boss-fill"></i></div>
+  </div>
+
+  <div id="hud">
+    <div class="orb-slot">
+      <div class="orb-shell life">
+        <div class="orb">
+          <div class="orb-fill" id="life-fill"></div>
+          <div class="orb-wave"></div>
+          <div class="orb-shine"></div>
+          <div class="orb-label"><b id="life-val">100</b><span>жизнь</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="hud-mid">
+      <div class="xp-strip">
+        <div class="lvl-badge" id="lvl-badge">1</div>
+        <div class="xp-track"><i id="xp-fill"></i></div>
+        <div class="xp-text" id="xp-text">0 / 220</div>
+      </div>
+
+      <div class="action-row">
+        <div class="belt">
+          <button class="potion hp" id="potion-hp" title="Зелье здоровья (Q)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v5l-4.2 7.1A3 3 0 0 0 8.4 20h7.2a3 3 0 0 0 2.6-4.9L14 8V3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.8 14h10.4l1 2.2A2.2 2.2 0 0 1 16.1 19H7.9a2.2 2.2 0 0 1-2.1-2.8Z" fill="currentColor" opacity=".55"/></svg>
+            <span class="pkey">Q</span><b id="hp-count">3</b>
+          </button>
+          <button class="potion mp" id="potion-mp" title="Зелье маны (E)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v5l-4.2 7.1A3 3 0 0 0 8.4 20h7.2a3 3 0 0 0 2.6-4.9L14 8V3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.8 14h10.4l1 2.2A2.2 2.2 0 0 1 16.1 19H7.9a2.2 2.2 0 0 1-2.1-2.8Z" fill="currentColor" opacity=".55"/></svg>
+            <span class="pkey">E</span><b id="mp-count">3</b>
+          </button>
+        </div>
+
+        <div class="skills" id="skills"></div>
+
+        <div class="utils">
+          <button class="ubtn" id="btn-bag" title="Сумка (I)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1.6 10.2a2 2 0 0 1-2 2.3H6.4a2 2 0 0 1-2-2.3Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M9 8V6.6A2.6 2.6 0 0 1 11.6 4h.8A2.6 2.6 0 0 1 15 6.6V8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 12.5h7" stroke="currentColor" stroke-width="1.3" opacity=".6"/></svg>
+            <span class="notif hidden" id="bag-notif"></span>
+          </button>
+          <button class="ubtn sound" id="btn-sound" title="Звук (M)">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3L12 5v14l-5-4.5H4Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path class="wave" d="M15.5 8.6a5 5 0 0 1 0 6.8M18 6.3a8.4 8.4 0 0 1 0 11.4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="hud-foot">
+        <span class="gold-chip"><i>◈</i><b id="gold-val">0</b></span>
+        <span class="hud-hint">ЛКМ — идти · ПКМ — заклинание · 1–4 — магия · I — сумка</span>
+      </div>
+    </div>
+
+    <div class="orb-slot right">
+      <div class="orb-shell mana">
+        <div class="orb">
+          <div class="orb-fill" id="mana-fill"></div>
+          <div class="orb-wave"></div>
+          <div class="orb-shine"></div>
+          <div class="orb-label"><b id="mana-val">70</b><span>мана</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="tooltip" class="hidden"></div>
+<div id="toasts"></div>
+
+<div id="inventory" class="pane hidden">
+  <div class="pane-head">
+    <div>
+      <span class="pane-kicker">Странница</span>
+      <h2>Характеристики</h2>
+    </div>
+    <button class="xbtn" id="btn-close-inv" aria-label="Закрыть">×</button>
+  </div>
+
+  <div class="paperdoll">
+    <div class="doll-grid">
+      <div class="equip-slot doll" data-slot="ring1"><span>Кольцо 1</span><div class="slot-art" data-icon="ring"></div></div>
+      <div class="equip-slot doll" data-slot="weapon"><span>Оружие</span><div class="slot-art" data-icon="weapon"></div></div>
+      <div class="equip-slot doll" data-slot="ring2"><span>Кольцо 2</span><div class="slot-art" data-icon="ring"></div></div>
+      <div class="equip-slot doll" data-slot="armor"><span>Доспех</span><div class="slot-art" data-icon="armor"></div></div>
+      <div class="doll-figure">
+        <svg viewBox="0 0 64 96" aria-hidden="true">
+          <path d="M32 8 L38 14 L38 22 L44 28 L44 42 L40 48 L40 58 L44 70 L40 88 L24 88 L20 70 L24 58 L24 48 L20 42 L20 28 L26 22 L26 14 Z" fill="rgba(201,169,92,0.12)" stroke="rgba(201,169,92,0.4)" stroke-width="1.2"/>
+          <circle cx="32" cy="12" r="6" fill="rgba(201,169,92,0.18)" stroke="rgba(201,169,92,0.5)" stroke-width="1"/>
+        </svg>
+      </div>
+      <div class="equip-slot doll" data-slot="charm"><span>Амулет</span><div class="slot-art" data-icon="charm"></div></div>
+    </div>
+  </div>
+
+  <div class="stat-line" id="gear-stats">Урон +0% · Броня 0 · Жизнь +0 · Мана +0</div>
+
+  <div class="inv-head"><span>Инвентарь</span><em id="inv-count">0 / 16</em></div>
+  <div class="inv-grid" id="inv-grid"></div>
+  <div class="inv-hint">Клик по предмету — надеть. Клик по слоту — снять.</div>
+</div>
+
+<div id="overlay-start" class="overlay">
+  <div class="veil"></div>
+  <div class="overlay-panel start-panel">
+    <div class="eyebrow">Diablo II · Акт I</div>
+    <h1>Логово зла</h1>
+    <div class="rule"><i></i></div>
+    <p class="flavor">«Земля под Рогом проклята. Твари плодятся в темноте, и никто не выйдет оттуда прежним».</p>
+    <div class="controls">
+      <div><kbd>ЛКМ</kbd><span>идти · атаковать</span></div>
+      <div><kbd>ПКМ</kbd><span>заклинание</span></div>
+      <div><kbd>1–4</kbd><span>выбор магии</span></div>
+      <div><kbd>Q / E</kbd><span>зелья</span></div>
+      <div><kbd>I</kbd><span>сумка</span></div>
+      <div><kbd>M</kbd><span>звук</span></div>
+    </div>
+    <button class="big-btn" id="btn-start">Войти в логово</button>
+    <div class="footnote">Один уровень · колдунья · дроп, сундуки и босс</div>
+  </div>
+</div>
+
+<div id="overlay-death" class="overlay hidden">
+  <div class="veil red"></div>
+  <div class="overlay-panel">
+    <div class="eyebrow danger">Тьма победила</div>
+    <h1>Вы погибли</h1>
+    <div class="rule"><i></i></div>
+    <p class="flavor" id="death-flavor">Пещера забрала ещё одну жизнь.</p>
+    <div class="result-grid" id="death-stats"></div>
+    <button class="big-btn" id="btn-respawn">Возродиться у входа</button>
+    <div class="footnote">Потеряно 20% золота. Добыча останется на земле.</div>
+  </div>
+</div>
+
+<div id="overlay-win" class="overlay hidden">
+  <div class="veil"></div>
+  <div class="overlay-panel">
+    <div class="eyebrow">Задание выполнено</div>
+    <h1>Логово очищено</h1>
+    <div class="rule"><i></i></div>
+    <p class="flavor">Кровавый Рог пал. В пещере снова слышно только капель.</p>
+    <div class="result-grid" id="win-stats"></div>
+    <button class="big-btn" id="btn-again">Спуститься снова</button>
+    <div class="footnote">Новая пещера, новая добыча, тот же голод.</div>
+  </div>
+</div>
+
+<div id="overlay-pause" class="overlay hidden">
+  <div class="veil"></div>
+  <div class="overlay-panel small">
+    <div class="eyebrow">Передышка</div>
+    <h1>Пауза</h1>
+    <div class="rule"><i></i></div>
+    <div class="controls">
+      <div><kbd>ЛКМ</kbd><span>идти · атаковать</span></div>
+      <div><kbd>ПКМ</kbd><span>заклинание</span></div>
+      <div><kbd>1–4</kbd><span>магия</span></div>
+      <div><kbd>Q / E</kbd><span>зелья</span></div>
+      <div><kbd>I</kbd><span>сумка</span></div>
+      <div><kbd>M</kbd><span>звук</span></div>
+    </div>
+    <button class="big-btn" id="btn-resume">Продолжить</button>
+  </div>
+</div>
+
+<div id="overlay-portal" class="overlay hidden">
+  <div class="veil"></div>
+  <div class="overlay-panel small">
+    <div class="eyebrow">Портал</div>
+    <h1>Спуститься глубже</h1>
+    <div class="rule"><i></i></div>
+    <p class="flavor">Хотите перейти на следующий уровень и оставить это логово позади?</p>
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button class="big-btn" id="btn-portal-go" style="flex:1; height:46px;">Перейти</button>
+      <button class="big-btn" id="btn-portal-cancel" style="flex:1; height:46px;">Остаться</button>
+    </div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
